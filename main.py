@@ -81,10 +81,7 @@ def scanner_all_threading(ip, portmax, maxthreads):
         end_port = min(end_port, portmax)
 
         if start_port <= portmax:
-            
-
-        
-
+            None
 
 def main():
     maxthreads = 0
