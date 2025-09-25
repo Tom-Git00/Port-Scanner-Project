@@ -1,41 +1,57 @@
 import socket
-import sys
 import time
 import threading
 
 def scanner_common(ip):
+
+    """
+    ip: alvo a analisar
+    """
+    # Lista de portas comuns a analisar
     common_ports = [21, 22, 23, 25, 53, 80, 110, 139, 143, 443, 445, 3306, 3389, 5900, 8080]    
     start_time = time.time()    
+
+    # Intera por cada porta na lista de common ports.
     for i in common_ports:
+        # Cria um socket TCP, para enviar um IP
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(1)
             sock.connect((ip, i))
-            print(f"[+] Port {i} is open")
+            print(f"[+] Porta {i} está aberta")
             sock.close()
         except:
             None
         finally:
             sock.close()
-    print("Scanning complete. It took %s seconds to scan cmon ports." % (time.time() - start_time))
+    print("Analise completa. Demorou %s segundos para analisar a portas comuns." % (time.time() - start_time))
 
 
 def scanner_ssh(ip):
+
+    """
+    ip: alvo a analisar
+    """
+
     start_time = time.time()
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(1)
         sock.connect((ip, 22))
-        print(f"[+] Port 22 is open")
+        print(f"[+] Porta 22 está aberta")
         sock.close()
     except:
         None
     finally:
         sock.close()
-    print("Scanning complete. It took %s seconds to scan ssh port." % (time.time() - start_time))
+    print("Analise completa. Demorou %s segundos para analisar a porta ssh." % (time.time() - start_time))
 
 
 def scanner_telnet(ip):
+
+    """
+    ip: alvo a analisar
+    """
     start_time = time.time()
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -46,7 +62,7 @@ def scanner_telnet(ip):
     except:
         None
 
-    print("Scanning complete. It took %s seconds to scan telnet port." % (time.time() - start_time))
+    print("Analise completa. Demorou %s segundos para analisar a porta telnet." % (time.time() - start_time))
 
 
 
@@ -84,24 +100,24 @@ def scanner_all_threading(ip, portmax, maxthreads):
             thread = threading.Thread(target=scan_port_range, args=(ip, start_port, end_port, open_ports))
             threads.append(thread)
             thread.start()
-            print(f"Thread {i+1}: Scanning ports {start_port}-{end_port}")
+            print(f"Thread {i+1}: Analisando portas {start_port}-{end_port}")
 
     for thread in threads:
         thread.join()
     
     print("-" * 50)
     print(f"Scan completed at: {time.ctime(time.time())}")
-    print("Scanning complete. It took %s seconds to scan all ports." % (time.time() - start_time))
-    print(f"Total open ports found: {len(open_ports)}")
+    print("Analise completa. Demorou %s para analisar todas as portas." % (time.time() - start_time))
+    print(f"Total de portas encontradas: {len(open_ports)}")
     if open_ports:
-        print(f"Open ports: {sorted(open_ports)}")
+        print(f"Portas abertas: {sorted(open_ports)}")
     else:
-        print("No open ports found")
+        print("Não foram encontradas portas abertas.")
     
     return sorted(open_ports)
             
 def scan_port_range(ip, start_port, end_port, open_ports):
-    """Scan a range of ports for a given IP"""
+
     for port in range(start_port, end_port + 1):
         sock = None
         try:
@@ -110,50 +126,58 @@ def scan_port_range(ip, start_port, end_port, open_ports):
             result = sock.connect_ex((ip, port))
             if result == 0:
                 open_ports.append(port)
-                print(f"Port {port}: Open")
+                print(f"Port {port}: Aberto")
         except socket.gaierror:
-            # Couldn't resolve hostname
+            # Invalido hostname
+            print(f"Hostname invalido {ip}")
             pass
         except Exception as e:
-            # Other socket errors
+            # Outro erro
+            print(f"Erro {port}: {e}")
             pass
         finally:
             if sock:
                 sock.close()
-
-
 
 def main():
     maxthreads = 0
     portmax = 65000
     check_exit = False
     
+    # Input do IP alvo
     ip_target = input("Enter target IP address: ")
 
+    #Loop do menu
     while check_exit == False:
-        print("1. Scan common ports")
-        print("2. Scan all ports (0-65000)")
-        print("3. Scan SSH port")
-        print("4. Scan Telnet port")
-        print("5. Exit")
+        print("1. Analisar portas comuns")
+        print("2. Analisar todas as portas (0-65000)")
+        print("3. Analisar porta ssh")
+        print("4. Analisar porta telnet")
+        print("5. Sair")
 
-        choice = input("Choose one of the options: ")
+        #Variavel para escolher a opção do menu
+        choice = input("Escolhe uma das opções: ")
+
+        #If nested para escolher a opção do menu
         if(choice == '1'):
-            print(f"Scanning common ports on target {ip_target}...")
+            print(f"Analisando portas communs {ip_target}...")
             scanner_common(ip_target)
         elif(choice == '2'):
-            maxthreads = int(input("Enter max number of threads (default 100): ") or "100")
-            print(f"Scanning all ports on target {ip_target}...")
+            maxthreads = int(input("Intruduz o número de threads para a analise (default 100): ") or "100")
+            print(f"Analisando todas as portas do alvo {ip_target}...")
             scanner_all_threading(ip_target, portmax, maxthreads)
         elif(choice == '3'):
-            print(f"Scanning SSH port on target {ip_target}...")
+            print(f"Analisando porta do ssh no alvo {ip_target}...")
             scanner_ssh(ip_target)
         elif(choice == '4'):
-            print(f"Scanning Telnet port on target {ip_target}...")
+            print(f"Analisando porta do telnet no alvo {ip_target}...")
             scanner_telnet(ip_target)
         elif(choice == '5'):
-            print("Exiting...")
+            print("Saindo...")
             check_exit = True
+        #Caso de invalidez
+        else:
+            print("Opção invalida. Por favor escolhe uma opção valida.")
 
 if __name__ == "__main__":
     main()
