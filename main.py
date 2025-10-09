@@ -141,7 +141,7 @@ def scan_port_range(ip, start_port, end_port, open_ports):
 
 def main():
     maxthreads = 0
-    portmax = 65000
+    portmax = 65553
     check_exit = False
     
     # Input do IP alvo
